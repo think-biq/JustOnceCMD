@@ -8,8 +8,17 @@ string(
     IS_STANDALON_PROJECT
 )
 
+add_definitions(
+	-DSTATIC_IN_RELEASE=static
+	-DQR_MAJOR_VERSION=4
+	-DQR_MINOR_VERSION=4
+	-DQR_MICRO_VERSION=1
+	-DQR_VERSION=4.4.1
+	-DHAVE_CONFIG_H=0)
+
 add_subdirectory(third-party/JustOnce)
 add_subdirectory(third-party/argparse)
+add_subdirectory(third-party/qrencode)
 
 file (GLOB JustOnceCMD_SRC
 	"${PROJECT_SOURCE_DIR}/src/main.c")
@@ -18,8 +27,11 @@ target_include_directories(JustOnceCMD PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/JustOnce/src>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/argparse/>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/qrencode/>"
 )
-target_link_libraries(JustOnceCMD JustOnce argparse)
+target_link_libraries(JustOnceCMD JustOnce argparse qrencode)
+
+#set_target_properties(AforC PROPERTIES COMPILE_FLAGS -DUSED_WITHIN_C_MODULE)
 
 #[[if (JustOnce_WithTest)
 	if (IS_STANDALON_PROJECT)
