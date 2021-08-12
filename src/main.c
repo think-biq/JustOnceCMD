@@ -77,9 +77,9 @@ int main(int Argc, const char **Argv)
         OPT_GROUP("Account info / QR code generation"),
         OPT_BOOLEAN('q', "show-qr", &bShowQR, "Show qr code for account.", \
                     NULL, 0, OPT_NONEG),
-        OPT_STRING('A', "account", &Verbose, 
+        OPT_STRING('A', "account", &AccountName, 
             "Specifies account name. (default=NONAME)"),
-        OPT_STRING('I', "issuer", &Verbose, 
+        OPT_STRING('I', "issuer", &Issuer, 
             "Specifies issuer name. (default=UNKNOWN)"),
         OPT_INTEGER('Q', "qr-quality", &QRQuality, 
             "Qualit of qr code. (default=0)"),
