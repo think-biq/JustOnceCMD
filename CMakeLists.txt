@@ -1,12 +1,23 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.2)
 
-project (JustOnceCMD)
+# set up versioning.
+set(BUILD_MAJOR 1)
+set(BUILD_MINOR 1)
+set(BUILD_PATCH 3)
+set(BUILD_VERSION "${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH}")
+
+project (JustOnceCMD VERSION ${BUILD_VERSION})
 
 string(
     COMPARE EQUAL
     "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
     IS_STANDALON_PROJECT
 )
+
+# Specify the configuration file from which the header file will be generated
+#configure_file (in/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h @ONLY)
+configure_file (in/version.h.in 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/version.h @ONLY)
 
 add_definitions(
 	-DSTATIC_IN_RELEASE=static
@@ -28,6 +39,7 @@ target_include_directories(JustOnceCMD PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/JustOnce/src>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/argparse/>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/qrencode/>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>"
 )
 target_link_libraries(JustOnceCMD JustOnce argparse qrencode)
 

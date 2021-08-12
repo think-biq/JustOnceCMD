@@ -21,25 +21,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-/*! \file misc.h
-    \brief Miscellaneous utilities.
+/*! \file version.h
+    \brief Version utilities.
     
     ^^
 */
 
-/** Finds max value. */
-#define GENERIC_MAX(x, y) ((x) > (y) ? (x) : (y))
-/** Finds min value. */
-#define GENERIC_MIN(x, y) ((x) < (y) ? (x) : (y))
+/** Buffer size for version name. */
+#define MAX_VERSION_SIZE 16
+/** Version name format. */
+#define VERSION_FORMAT "v%d.%d.%d"
+/** Major version number. */
+#define MAJOR @BUILD_MAJOR@
+/** Minor version number. */
+#define MINOR @BUILD_MINOR@
+/** Patch version number. */
+#define PATCH @BUILD_PATCH@
 
-/** Type check for int. */
-#define ENSURE_int(i)   _Generic((i), int:   (i))
-/** Type check for float. */
-#define ENSURE_float(f) _Generic((f), float: (f))
-
-/** Finds typed max value. */
-#define MAX(type, x, y) \
-  (type)GENERIC_MAX(ENSURE_##type(x), ENSURE_##type(y))
-/** Finds typed min value. */
-#define MIN(type, x, y) \
-  (type)GENERIC_MIN(ENSURE_##type(x), ENSURE_##type(y))
+/**
+* Query current version name.
+* 
+* @returns Current version name. 
+*/
+const char* GetVersion();

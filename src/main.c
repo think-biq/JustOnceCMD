@@ -1,3 +1,32 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) blurryroots innovation qanat OÜ
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+/*! \file main.c
+    \brief Entry point.
+    
+    ^^
+*/
+
 #include <JustOnce/key.h>
 #include <JustOnce/otp.h>
 #include <JustOnce/timing.h>
@@ -68,7 +97,7 @@ int main(int Argc, const char **Argv)
         OPT_BOOLEAN('h', "help", &Config.bShowHelp, \
                     "Show this help message and exit.", \
                     argparse_help_cb, 0, OPT_NONEG),
-        OPT_BOOLEAN('v', "Version", &Config.bShowVersion, \
+        OPT_BOOLEAN('v', "version", &Config.bShowVersion, \
                     "Show version number.", \
                     NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('u', "show-times", &Config.bShowOnlyTime, \
@@ -231,12 +260,6 @@ int main(int Argc, const char **Argv)
         fprintf(stderr, "Invalid key!");
         return 1;
     }
-
-    if (Config.bPrintKey)
-    {
-        printf("%s", NormalizedKey);
-        return 0;
-    }
     
     char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, Config.AccountName, Config.Issuer, Config.Digits, Config.Interval);
     
@@ -290,6 +313,11 @@ int main(int Argc, const char **Argv)
             }
             free(Code);
         }
+    }
+
+    if (Config.bPrintKey)
+    {
+        printf("%s", NormalizedKey);
     }
 
     free(NormalizedKey);

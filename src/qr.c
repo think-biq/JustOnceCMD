@@ -113,7 +113,7 @@ void ShowQRCode(const char* AppURI, QRecLevel Quality, int Version, int bCaseSen
         bCaseSensitive
     );
 
-    writeUTF8(Code, 1, 0, 0);
+    writeUTF8(Code, 0, 0, 0);
 
     free(Code);
 }
