@@ -262,7 +262,7 @@ int main(int Argc, const char **Argv)
     if (bShowQR)
     {
         const char* FMT = "otpauth://%s/%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%i&period=%i";
-        char* URI[256];
+        char URI[256];
         snprintf(URI, 256, FMT, "totp", AccountName, NormalizedKey, Issuer, Digits, Interval);
         //printf("\n");
         QRecLevel Quality = QR_ECLEVEL_L;
