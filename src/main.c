@@ -13,6 +13,28 @@
 typedef struct argparse argparse_t;
 typedef struct argparse_option argparse_option_t;
 
+typedef struct {
+    int Interval;
+    int Timestamp;
+    int Mode;
+    int Digits;
+    int Counter;
+    int Verbose;
+    char* KeyFilePath;
+    char* AccountName;
+    char* Issuer;
+    int QRQuality;
+    int QRVersion;
+    int bShowHelp;
+    int bShowOnlyTime;
+    int bGenerateKey;
+    char* KeyGenerationSeed;
+    int bShowVersion;
+    int bShowQR;
+    int bShowURI;
+    int bPrintKey;
+} config_t;
+
 int main(int Argc, const char **Argv)
 {
     const char *const Usage[] = {
@@ -20,72 +42,73 @@ int main(int Argc, const char **Argv)
         NULL,
     };
 
-    int Interval = -1;
-    int Timestamp = -1;
-    int Mode = -1;
-    int Digits = -1;
-    int Counter = 0;
-    int Verbose = 0;
-    char* KeyFilePath = NULL;
-    char* AccountName = NULL;
-    char* Issuer = NULL;
-    int QRQuality = 0;
-    int QRVersion = 0;
-    int bShowHelp = 0;
-    int bShowOnlyTime = 0;
-    int bGenerateKey = 0;
-    char* KeyGenerationSeed = NULL;
-    int bShowVersion = 0;
-    int bShowQR = 0;
-    int bShowURI = 0;
-    int bPrintKey = 0;
+    config_t Config;
+    Config.Interval = -1;
+    Config.Timestamp = -1;
+    Config.Mode = -1;
+    Config.Digits = -1;
+    Config.Counter = 0;
+    Config.Verbose = 0;
+    Config.KeyFilePath = NULL;
+    Config.AccountName = NULL;
+    Config.Issuer = NULL;
+    Config.QRQuality = 0;
+    Config.QRVersion = 0;
+    Config.bShowHelp = 0;
+    Config.bShowOnlyTime = 0;
+    Config.bGenerateKey = 0;
+    Config.KeyGenerationSeed = NULL;
+    Config.bShowVersion = 0;
+    Config.bShowQR = 0;
+    Config.bShowURI = 0;
+    Config.bPrintKey = 0;
 
     argparse_option_t Options[] = {
         OPT_GROUP("General"),
-        OPT_BOOLEAN('h', "help", &bShowHelp, \
+        OPT_BOOLEAN('h', "help", &Config.bShowHelp, \
                     "Show this help message and exit.", \
                     argparse_help_cb, 0, OPT_NONEG),
-        OPT_BOOLEAN('v', "Version", &bShowVersion, \
+        OPT_BOOLEAN('v', "Version", &Config.bShowVersion, \
                     "Show version number.", \
                     NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('u', "show-times", &bShowOnlyTime, \
+        OPT_BOOLEAN('u', "show-times", &Config.bShowOnlyTime, \
                     "Only show time information.", \
                     NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('g', "generate-key", &bGenerateKey, \
+        OPT_BOOLEAN('g', "generate-key", &Config.bGenerateKey, \
                     "Generates a base32 encoded key of length 32.", \
                     NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('P', "print-key", &bPrintKey, \
+        OPT_BOOLEAN('P', "print-key", &Config.bPrintKey, \
                     "Prints key.", \
                     NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('V', "verbose", &Verbose,
+        OPT_BOOLEAN('V', "verbose", &Config.Verbose,
             "Output in verbose mode."),
-        OPT_STRING('k', "key-file", &KeyFilePath, 
+        OPT_STRING('k', "key-file", &Config.KeyFilePath, 
             "Specify key file path. If not specified, reads from stdin."),
         OPT_GROUP("OTP"),
-        OPT_STRING('s', "key-seed", &KeyGenerationSeed,
+        OPT_STRING('s', "key-seed", &Config.KeyGenerationSeed,
             "Seed phrase for key generation."),
-        OPT_INTEGER('o', "show-otp", &Mode,
+        OPT_INTEGER('o', "show-otp", &Config.Mode,
             "Selectes OTP mode. 0 is TOTP. 1 is HOTP."),
-        OPT_INTEGER('d', "digits", &Digits,
+        OPT_INTEGER('d', "digits", &Config.Digits,
             "Number of digits of the OTP. (default=6)"),
-        OPT_INTEGER('c', "counter", &Counter,
+        OPT_INTEGER('c', "counter", &Config.Counter,
             "Counter value to be used with HOTP. (default=0)"),
-        OPT_INTEGER('i', "interval", &Interval, 
+        OPT_INTEGER('i', "interval", &Config.Interval, 
             "Interval to use for TOTP creation. (default=30)"),
-        OPT_INTEGER('t', "timestamp", &Timestamp, 
+        OPT_INTEGER('t', "timestamp", &Config.Timestamp, 
             "Unix timestamp to use for TOTP creation. (default=NOW)"),
         OPT_GROUP("Account info / QR code generation"),
-        OPT_BOOLEAN('q', "show-qr", &bShowQR, "Show qr code for account.", \
+        OPT_BOOLEAN('q', "show-qr", &Config.bShowQR, "Show qr code for account.", \
                     NULL, 0, OPT_NONEG),
-        OPT_STRING('A', "account", &AccountName, 
+        OPT_STRING('A', "account", &Config.AccountName, 
             "Specifies account name. (default=NONAME)"),
-        OPT_STRING('I', "issuer", &Issuer, 
+        OPT_STRING('I', "issuer", &Config.Issuer, 
             "Specifies issuer name. (default=UNKNOWN)"),
-        OPT_INTEGER('Q', "qr-quality", &QRQuality, 
+        OPT_INTEGER('Q', "qr-quality", &Config.QRQuality, 
             "Qualit of qr code. (default=0)"),
-        OPT_INTEGER('C', "qr-version", &QRVersion, 
+        OPT_INTEGER('C', "qr-version", &Config.QRVersion, 
             "Qualit of qr code. (default=0)"),
-        OPT_BOOLEAN('U', "show-url", &bShowURI, "Show otpauth url.", \
+        OPT_BOOLEAN('U', "show-url", &Config.bShowURI, "Show otpauth url.", \
                     NULL, 0, OPT_NONEG),
         OPT_END(),
     };
@@ -97,53 +120,55 @@ int main(int Argc, const char **Argv)
         NULL);
 
     Argc = argparse_parse(&ArgsContext, Argc, Argv);
-    if (-1 == Interval)
-        Interval = 30;
-    if (-1 == Timestamp)
-        Timestamp = GetUnixTimeNow();    
-    if (-1 == Digits)
-        Digits = 6;
-    if (NULL == AccountName)
-        AccountName = strdup("NONAME");
-    if (NULL == Issuer)
-        Issuer = strdup("UNKNOWN");    
-    Mode = MAX(int, -1, MIN(int, 1, Mode));
+    if (-1 == Config.Interval)
+        Config.Interval = 30;
+    if (-1 == Config.Timestamp)
+        Config.Timestamp = GetUnixTimeNow();    
+    if (-1 == Config.Digits)
+        Config.Digits = 6;
+    if (NULL == Config.AccountName)
+        Config.AccountName = strdup("NONAME");
+    if (NULL == Config.Issuer)
+        Config.Issuer = strdup("UNKNOWN");    
+    Config.Mode = MAX(int, -1, MIN(int, 1, Config.Mode));
+    Config.QRQuality = MAX(int, MIN(int, 3, Config.QRQuality), 0);
+    Config.QRVersion = MAX(int, MIN(int, 40, Config.QRVersion), 0);
 
-    if (bShowHelp)
+    if (Config.bShowHelp)
     {
         argparse_usage(&ArgsContext);
         return 0;
     }
 
-    if (bShowVersion)
+    if (Config.bShowVersion)
     {
         printf("%s", GetVersion());
         return 0;
     }
 
-    if (bShowOnlyTime)
+    if (Config.bShowOnlyTime)
     {
-        if (Verbose)
+        if (Config.Verbose)
         {
-            int TimeFrame = GetTimeFrame(Timestamp, Interval);
-            int Progress = GetTimeFrameProgress(Timestamp, Interval);
-            printf("%d %d %d", Timestamp, TimeFrame, Progress);
+            int TimeFrame = GetTimeFrame(Config.Timestamp, Config.Interval);
+            int Progress = GetTimeFrameProgress(Config.Timestamp, Config.Interval);
+            printf("%d %d %d", Config.Timestamp, TimeFrame, Progress);
         }
         else
         {
-            printf("%d", Timestamp);
+            printf("%d", Config.Timestamp);
         }
 
         return 0;
     }
 
     char Key[33];
-    if (bGenerateKey)
+    if (Config.bGenerateKey)
     {
         char* TempKey;
-        if (NULL != KeyGenerationSeed)
+        if (NULL != Config.KeyGenerationSeed)
         {
-            TempKey = GenerateKeyFromSeed(KeyGenerationSeed);
+            TempKey = GenerateKeyFromSeed(Config.KeyGenerationSeed);
         }
         else
         {
@@ -161,14 +186,14 @@ int main(int Argc, const char **Argv)
     }
     else
     {
-        if (NULL != KeyFilePath)
+        if (NULL != Config.KeyFilePath)
         {
-            FILE * KeyFile;
-            char * line = NULL;
+            FILE* KeyFile;
+            char* line = NULL;
             size_t len = 0;
             ssize_t read;
 
-            KeyFile = fopen(KeyFilePath, "r");
+            KeyFile = fopen(Config.KeyFilePath, "r");
             if (NULL == KeyFile)
             {
                 argparse_usage(&ArgsContext);
@@ -207,27 +232,23 @@ int main(int Argc, const char **Argv)
         return 1;
     }
 
-    if (bPrintKey)
+    if (Config.bPrintKey)
     {
         printf("%s", NormalizedKey);
         return 0;
     }
-
-    const char* FMT =
-        "otpauth://%s/%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%i&period=%i";
     
-    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, AccountName, Issuer, Digits, Interval);
+    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, Config.AccountName, Config.Issuer, Config.Digits, Config.Interval);
     
-    if (bShowURI)
+    if (Config.bShowURI)
     {        
         printf("%s\n", URI);
     }
 
-    if (bShowQR)
+    if (Config.bShowQR)
     {
-        QRQuality = MAX(int, MIN(int, 3, QRQuality), 0);
         QRecLevel Quality = QR_ECLEVEL_L;
-        switch(QRQuality)
+        switch(Config.QRQuality)
         {
             default:
             case 0:
@@ -243,26 +264,25 @@ int main(int Argc, const char **Argv)
                 Quality = QR_ECLEVEL_H;
                 break;
         }
-        int Version = MAX(int, MIN(int, 40, QRVersion), 0);
-        ShowQRCode(URI, Quality, Version, 1);
+        ShowQRCode(URI, Quality, Config.QRVersion, 1);
     }
 
     free(URI);
 
-    if (-1 < Mode)
+    if (-1 < Config.Mode)
     {
         int OTP;
-        if (0 == Mode)
-            OTP = CalculateTOTP(NormalizedKey, Timestamp, Interval, Digits, NULL);
-        else if (1 == Mode)
-            OTP = CalculateHOTP(NormalizedKey, Counter, Digits, NULL);        
+        if (0 == Config.Mode)
+            OTP = CalculateTOTP(NormalizedKey, Config.Timestamp, Config.Interval, Config.Digits, NULL);
+        else if (1 == Config.Mode)
+            OTP = CalculateHOTP(NormalizedKey, Config.Counter, Config.Digits, NULL);        
         {
-            char* Code = MakeStringFromOTP(OTP, Digits);
-            if (Verbose)
+            char* Code = MakeStringFromOTP(OTP, Config.Digits);
+            if (Config.Verbose)
             {
-                int TimeFrame = GetTimeFrame(Timestamp, Interval);
-                int Progress = GetTimeFrameProgress(Timestamp, Interval);
-                printf("%s %d %d %d", Code, Timestamp, TimeFrame, Progress);
+                int TimeFrame = GetTimeFrame(Config.Timestamp, Config.Interval);
+                int Progress = GetTimeFrameProgress(Config.Timestamp, Config.Interval);
+                printf("%s %d %d %d", Code, Config.Timestamp, TimeFrame, Progress);
             }
             else
             {
