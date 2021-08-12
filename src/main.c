@@ -209,7 +209,7 @@ int main(int Argc, const char **Argv)
 
     if (bPrintKey)
     {
-        printf("%s", Key);
+        printf("%s", NormalizedKey);
         return 0;
     }
 
