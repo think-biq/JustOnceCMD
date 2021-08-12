@@ -6,6 +6,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define MAX_VERSION_SIZE 16
+#define VERSION_FORMAT "v%d.%d.%d"
+#define MAJOR 1
+#define MINOR 0
+#define PATCH 10
+
+const char* GetVersion()
+{
+    static char Version[MAX_VERSION_SIZE] = { '\0' };
+    if (0 == strlen(Version))
+    {
+        snprintf(Version, MAX_VERSION_SIZE, VERSION_FORMAT, MAJOR, MINOR, PATCH);
+    }
+
+    return Version;
+}
+
 static const char *const usage[] = {
     "JustOnceCMD [options] [< key_file]",
     NULL,
@@ -19,11 +36,19 @@ main(int argc, const char **argv)
     int Digits = -1;
     int Verbose = 0;
     int bShowHelp = 0;
+    int bShowOnlyTime = 0;
+    int bShowVersion = 0;
 
     struct argparse_option options[] = {
         OPT_BOOLEAN('h', "help", &bShowHelp, \
-                    "show this help message and exit", \
+                    "Show this help message and exit.", \
                     argparse_help_cb, 0, OPT_NONEG),
+        OPT_BOOLEAN('V', "Version", &bShowVersion, \
+                    "Show version number.", \
+                    NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('u', "only-times", &bShowOnlyTime, \
+                    "Only show time information.", \
+                    NULL, 0, OPT_NONEG),
         OPT_INTEGER('i', "interval", &Interval, "Interval to use for TOTP creation. (default=30)"),
         OPT_INTEGER('t', "timestamp", &Timestamp, "Unix timestamp to use for TOTP creation. (default=NOW)"),
         OPT_INTEGER('d', "digits", &Digits, "Number of digits of the OTP. (default=6)"),
@@ -49,6 +74,28 @@ main(int argc, const char **argv)
     {
         argparse_usage(&argparse);
         return 1;
+    }
+
+    if (bShowVersion)
+    {
+        printf("%s", GetVersion());
+        return 1;
+    }
+
+    if (bShowOnlyTime)
+    {
+        if (Verbose)
+        {
+            int TimeFrame = GetTimeFrame(Timestamp, Interval);
+            int Progress = GetTimeFrameProgress(Timestamp, Interval);
+            printf("%d %d %d", Timestamp, TimeFrame, Progress);
+        }
+        else
+        {
+            printf("%d", Timestamp);
+        }
+
+        return 0;
     }
 
     char Key[33];
