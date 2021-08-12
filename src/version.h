@@ -27,17 +27,6 @@ SOFTWARE.
     ^^
 */
 
-/** Buffer size for version name. */
-#define MAX_VERSION_SIZE 16
-/** Version name format. */
-#define VERSION_FORMAT "v%d.%d.%d"
-/** Major version number. */
-#define MAJOR @BUILD_MAJOR@
-/** Minor version number. */
-#define MINOR @BUILD_MINOR@
-/** Patch version number. */
-#define PATCH @BUILD_PATCH@
-
 /**
 * Query current version name.
 * 

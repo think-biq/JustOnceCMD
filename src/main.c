@@ -35,7 +35,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "version.h"
+#include <version.h>
 #include "qr.h"
 #include "misc.h"
 

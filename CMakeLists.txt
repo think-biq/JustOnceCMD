@@ -1,10 +1,16 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.2)
 
-# set up versioning.
+# Setup versioning.
 set(BUILD_MAJOR 1)
 set(BUILD_MINOR 1)
 set(BUILD_PATCH 3)
 set(BUILD_VERSION "${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH}")
+# Expose version information to config.
+set(VERSION_NAME_BUFFER_SIZE 16)
+set(VERSION_MAJOR ${BUILD_MAJOR})
+set(VERISON_MINOR ${BUILD_MINOR})
+set(VERSION_PATCH ${BUILD_PATCH})
+set(VERSION_FORMAT "v%d.%d.%d")
 
 project (JustOnceCMD VERSION ${BUILD_VERSION})
 
@@ -14,19 +20,6 @@ string(
     IS_STANDALON_PROJECT
 )
 
-# Specify the configuration file from which the header file will be generated
-#configure_file (in/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h @ONLY)
-configure_file (in/version.h.in 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/version.h @ONLY)
-
-add_definitions(
-	-DSTATIC_IN_RELEASE=static
-	-DQR_MAJOR_VERSION=4
-	-DQR_MINOR_VERSION=4
-	-DQR_MICRO_VERSION=1
-	-DQR_VERSION=4.4.1
-	-DHAVE_CONFIG_H=0)
-
 add_subdirectory(third-party/JustOnce)
 add_subdirectory(third-party/argparse)
 add_subdirectory(third-party/qrencode)
@@ -34,31 +27,29 @@ add_subdirectory(third-party/qrencode)
 file (GLOB JustOnceCMD_SRC
 	"${PROJECT_SOURCE_DIR}/src/*.c")
 add_executable(JustOnceCMD ${JustOnceCMD_SRC})
-target_include_directories(JustOnceCMD PUBLIC
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/JustOnce/src>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/argparse/>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/qrencode/>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>"
+configure_file (in/config.h.in 
+	${CMAKE_INSTALL_INCLUDEDIR}/config.h @ONLY)
+target_include_directories(JustOnceCMD
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/JustOnce/src>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/argparse/>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/qrencode/>"
+  PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 target_link_libraries(JustOnceCMD JustOnce argparse qrencode)
 
-#set_target_properties(AforC PROPERTIES COMPILE_FLAGS -DUSED_WITHIN_C_MODULE)
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
 
-#[[if (JustOnce_WithTest)
-	if (IS_STANDALON_PROJECT)
-		add_subdirectory(third-party/testly)
-		include_directories(third-party/testly/src)
-	else()
-		find_package(Testly)
-	endif()
-
-	file(GLOB JustOnce_Test_SRC	
-		"${PROJECT_SOURCE_DIR}/test/*.c"
-		"${PROJECT_SOURCE_DIR}/test/**/*.c")
-	add_executable (JustOnceTest ${JustOnce_Test_SRC})
-	target_include_directories(JustOnce PUBLIC
-	  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-	)
-	target_link_libraries(JustOnceTest JustOnce Testly)
-endif()]]
+install(
+    TARGETS JustOnceCMD
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
