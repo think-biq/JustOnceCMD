@@ -21,7 +21,7 @@ add_subdirectory(third-party/argparse)
 add_subdirectory(third-party/qrencode)
 
 file (GLOB JustOnceCMD_SRC
-	"${PROJECT_SOURCE_DIR}/src/main.c")
+	"${PROJECT_SOURCE_DIR}/src/*.c")
 add_executable(JustOnceCMD ${JustOnceCMD_SRC})
 target_include_directories(JustOnceCMD PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
