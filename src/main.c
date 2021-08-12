@@ -19,6 +19,7 @@ main(int argc, const char **argv)
     int Interval = -1;
     int Timestamp = -1;
     int Digits = -1;
+    int Verbose = 0;
 
     struct argparse_option options[] = {
         OPT_HELP(),
@@ -26,6 +27,7 @@ main(int argc, const char **argv)
         OPT_INTEGER('i', "interval", &Interval, "Interval to use for TOTP creation."),
         OPT_INTEGER('t', "timestamp", &Timestamp, "Unix timestamp to use for TOTP creation. Uses now if not specified."),
         OPT_INTEGER('d', "digits", &Digits, "Number of digits of the OTP."),
+        OPT_BOOLEAN('v', "verbose", &Verbose, "Output in verbose mode."),
         OPT_END(),
     };
 
@@ -57,8 +59,17 @@ main(int argc, const char **argv)
         Digits = 6;
 
     int OTP = CalculateTOTP(NormalizedKey, Timestamp, Interval, Digits, NULL);
+    int TimeFrame = GetTimeFrame(Timestamp, Interval);
+    int Progress = GetTimeFrameProgress(Timestamp, Interval);
     char* Code = MakeStringFromOTP(OTP, Digits);
-    printf("%s", Code);
+    if (Verbose)
+    {
+        printf("%s %d %d %d", Code, Timestamp, TimeFrame, Progress);
+    }
+    else
+    {
+        printf("%s", Code);        
+    }
     free(Code);
 
     free(NormalizedKey);
