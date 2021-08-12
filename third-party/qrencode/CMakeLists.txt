@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.2)
 project(QRencode VERSION 4.1.1 LANGUAGES C)
 
 #configure_file("${CMAKE_CURRENT_SOURCE_DIR}"/config.h.in)
+add_definitions(
+    -DSTATIC_IN_RELEASE=static
+    -DQR_MAJOR_VERSION=4
+    -DQR_MINOR_VERSION=4
+    -DQR_MICRO_VERSION=1
+    -DQR_VERSION=4.4.1
+    -DHAVE_CONFIG_H=0)
 
 option(WITH_TOOLS "Build utility tools"  YES )
 option(WITH_TESTS "Build tests"  NO )
