@@ -216,10 +216,8 @@ int main(int Argc, const char **Argv)
     const char* FMT =
         "otpauth://%s/%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%i&period=%i";
     
-    char URI[256];
-    snprintf(URI, 256, FMT, 
-        "totp", AccountName, NormalizedKey, Issuer, Digits, Interval);
-
+    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, AccountName, Issuer, Digits, Interval);
+    
     if (bShowURI)
     {        
         printf("%s\n", URI);
@@ -248,6 +246,8 @@ int main(int Argc, const char **Argv)
         int Version = MAX(int, MIN(int, 40, QRVersion), 0);
         ShowQRCode(URI, Quality, Version, 1);
     }
+
+    free(URI);
 
     if (-1 < Mode)
     {
