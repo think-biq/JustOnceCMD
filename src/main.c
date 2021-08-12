@@ -7,10 +7,17 @@
 #include <unistd.h>
 
 static const char *const usage[] = {
-    "JustOnceCMD [options] [[--] args]",
-    "test_argparse [options]",
+    "JustOnceCMD [options] [< key_file]",
     NULL,
 };
+
+int bHasHelp = 0;
+
+int HelpCallback(struct argparse *self, const struct argparse_option *option)
+{
+    bHasHelp = 1;
+    return argparse_help_cb(self, option);
+}
 
 int
 main(int argc, const char **argv)
@@ -22,11 +29,12 @@ main(int argc, const char **argv)
     int Verbose = 0;
 
     struct argparse_option options[] = {
-        OPT_HELP(),
-        OPT_GROUP("Basic options"),
-        OPT_INTEGER('i', "interval", &Interval, "Interval to use for TOTP creation."),
-        OPT_INTEGER('t', "timestamp", &Timestamp, "Unix timestamp to use for TOTP creation. Uses now if not specified."),
-        OPT_INTEGER('d', "digits", &Digits, "Number of digits of the OTP."),
+        OPT_BOOLEAN('h', "help", NULL,                 \
+                    "show this help message and exit", \
+                    HelpCallback, 0, OPT_NONEG),
+        OPT_INTEGER('i', "interval", &Interval, "Interval to use for TOTP creation. (default=30)"),
+        OPT_INTEGER('t', "timestamp", &Timestamp, "Unix timestamp to use for TOTP creation. (default=NOW)"),
+        OPT_INTEGER('d', "digits", &Digits, "Number of digits of the OTP. (default=6)"),
         OPT_BOOLEAN('v', "verbose", &Verbose, "Output in verbose mode."),
         OPT_END(),
     };
@@ -34,8 +42,22 @@ main(int argc, const char **argv)
     struct argparse argparse;
     argparse_init(&argparse, options, usage, 0);
     argparse_describe(&argparse, 
-        "\nA brief description of what the program does and how it works.", 
-        "\nAdditional description of the program after the description of the arguments.");
+        "\nGenerate one-time passwords.", 
+        NULL);
+
+    argc = argparse_parse(&argparse, argc, argv);
+    if (-1 == Interval)
+        Interval = 30;
+    if (-1 == Timestamp)
+        Timestamp = GetUnixTimeNow();    
+    if (-1 == Digits)
+        Digits = 6;
+
+    if (bHasHelp)
+    {
+        argparse_usage(&argparse);
+        return 1;
+    }
 
     char Key[33];
     int Read = read(STDIN_FILENO, Key, 32);
@@ -49,14 +71,6 @@ main(int argc, const char **argv)
     {
         return 1;     
     }
-
-    argc = argparse_parse(&argparse, argc, argv);
-    if (-1 == Interval)
-        Interval = 30;
-    if (-1 == Timestamp)
-        Timestamp = GetUnixTimeNow();    
-    if (-1 == Digits)
-        Digits = 6;
 
     int OTP = CalculateTOTP(NormalizedKey, Timestamp, Interval, Digits, NULL);
     int TimeFrame = GetTimeFrame(Timestamp, Interval);
