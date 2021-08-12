@@ -6,13 +6,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+typedef struct argparse argparse_t;
+typedef struct argparse_option argparse_option_t;
+
 #define MAX_VERSION_SIZE 16
 #define VERSION_FORMAT "v%d.%d.%d"
 #define MAJOR 1
 #define MINOR 0
 #define PATCH 10
 
-const char* GetVersion()
+static const char* GetVersion()
 {
     static char Version[MAX_VERSION_SIZE] = { '\0' };
     if (0 == strlen(Version))
@@ -23,13 +26,12 @@ const char* GetVersion()
     return Version;
 }
 
-static const char *const usage[] = {
+static const char *const Usage[] = {
     "JustOnceCMD [options] [< key_file]",
     NULL,
 };
 
-int
-main(int argc, const char **argv)
+int main(int Argc, const char **Argv)
 {
     int Interval = -1;
     int Timestamp = -1;
@@ -39,7 +41,7 @@ main(int argc, const char **argv)
     int bShowOnlyTime = 0;
     int bShowVersion = 0;
 
-    struct argparse_option options[] = {
+    argparse_option_t Options[] = {
         OPT_BOOLEAN('h', "help", &bShowHelp, \
                     "Show this help message and exit.", \
                     argparse_help_cb, 0, OPT_NONEG),
@@ -56,13 +58,13 @@ main(int argc, const char **argv)
         OPT_END(),
     };
 
-    struct argparse argparse;
-    argparse_init(&argparse, options, usage, 0);
-    argparse_describe(&argparse, 
+    argparse_t ArgsContext;
+    argparse_init(&ArgsContext, Options, Usage, 0);
+    argparse_describe(&ArgsContext, 
         "\nGenerates one-time passwords.", 
         NULL);
 
-    argc = argparse_parse(&argparse, argc, argv);
+    Argc = argparse_parse(&ArgsContext, Argc, Argv);
     if (-1 == Interval)
         Interval = 30;
     if (-1 == Timestamp)
@@ -72,14 +74,14 @@ main(int argc, const char **argv)
 
     if (bShowHelp)
     {
-        argparse_usage(&argparse);
-        return 1;
+        argparse_usage(&ArgsContext);
+        return 0;
     }
 
     if (bShowVersion)
     {
         printf("%s", GetVersion());
-        return 1;
+        return 0;
     }
 
     if (bShowOnlyTime)
