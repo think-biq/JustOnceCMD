@@ -65,19 +65,20 @@ main(int argc, const char **argv)
     }
 
     int OTP = CalculateTOTP(NormalizedKey, Timestamp, Interval, Digits, NULL);
-    int TimeFrame = GetTimeFrame(Timestamp, Interval);
-    int Progress = GetTimeFrameProgress(Timestamp, Interval);
-    char* Code = MakeStringFromOTP(OTP, Digits);
-    if (Verbose)
     {
-        printf("%s %d %d %d", Code, Timestamp, TimeFrame, Progress);
+        char* Code = MakeStringFromOTP(OTP, Digits);
+        if (Verbose)
+        {
+            int TimeFrame = GetTimeFrame(Timestamp, Interval);
+            int Progress = GetTimeFrameProgress(Timestamp, Interval);
+            printf("%s %d %d %d", Code, Timestamp, TimeFrame, Progress);
+        }
+        else
+        {
+            printf("%s", Code);
+        }
+        free(Code);
     }
-    else
-    {
-        printf("%s", Code);        
-    }
-    free(Code);
-
     free(NormalizedKey);
 
     return 0;
