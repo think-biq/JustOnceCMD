@@ -11,27 +11,19 @@ static const char *const usage[] = {
     NULL,
 };
 
-int bHasHelp = 0;
-
-int HelpCallback(struct argparse *self, const struct argparse_option *option)
-{
-    bHasHelp = 1;
-    return argparse_help_cb(self, option);
-}
-
 int
 main(int argc, const char **argv)
 {
-    /*const char *Key = NULL;*/
     int Interval = -1;
     int Timestamp = -1;
     int Digits = -1;
     int Verbose = 0;
+    int bShowHelp = 0;
 
     struct argparse_option options[] = {
-        OPT_BOOLEAN('h', "help", NULL,                 \
+        OPT_BOOLEAN('h', "help", &bShowHelp, \
                     "show this help message and exit", \
-                    HelpCallback, 0, OPT_NONEG),
+                    argparse_help_cb, 0, OPT_NONEG),
         OPT_INTEGER('i', "interval", &Interval, "Interval to use for TOTP creation. (default=30)"),
         OPT_INTEGER('t', "timestamp", &Timestamp, "Unix timestamp to use for TOTP creation. (default=NOW)"),
         OPT_INTEGER('d', "digits", &Digits, "Number of digits of the OTP. (default=6)"),
@@ -42,7 +34,7 @@ main(int argc, const char **argv)
     struct argparse argparse;
     argparse_init(&argparse, options, usage, 0);
     argparse_describe(&argparse, 
-        "\nGenerate one-time passwords.", 
+        "\nGenerates one-time passwords.", 
         NULL);
 
     argc = argparse_parse(&argparse, argc, argv);
@@ -53,7 +45,7 @@ main(int argc, const char **argv)
     if (-1 == Digits)
         Digits = 6;
 
-    if (bHasHelp)
+    if (bShowHelp)
     {
         argparse_usage(&argparse);
         return 1;
