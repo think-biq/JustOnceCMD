@@ -317,6 +317,11 @@ int main(int Argc, const char **Argv)
 
     if (Config.bPrintKey)
     {
+        if (-1 < Config.Mode)
+        {
+            printf("\n");
+        }
+
         printf("%s", NormalizedKey);
     }
 
