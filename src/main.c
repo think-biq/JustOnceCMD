@@ -39,6 +39,12 @@ SOFTWARE.
 #include "qr.h"
 #include "misc.h"
 
+#define DEFAULT_OR_CLAMP(Variable, Invalid, Default, Type, MinValue, MaxMalue) \
+    Variable = Invalid == Variable ? Default : CLAMP(Type, Variable, MinValue, MaxMalue)
+
+#define DEFAULT_OR_RETAIN(Variable, Invalid, Default) \
+    Variable = Invalid == Variable ? Default : Variable
+
 typedef struct argparse argparse_t;
 typedef struct argparse_option argparse_option_t;
 
@@ -105,7 +111,7 @@ int main(int Argc, const char **Argv)
                     NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('g', "generate-key", &Config.bGenerateKey, \
                     "Generates a base32 encoded key of length 32.", \
-                    NULL, 0, OPT_NONEG),
+                    NULL, 0, OPT_NONEG),      
         OPT_BOOLEAN('P', "print-key", &Config.bPrintKey, \
                     "Prints key.", \
                     NULL, 0, OPT_NONEG),
@@ -127,8 +133,8 @@ int main(int Argc, const char **Argv)
         OPT_INTEGER('t', "timestamp", &Config.Timestamp, 
             "Unix timestamp to use for TOTP creation. (default=NOW)"),
         OPT_GROUP("Account info / QR code generation"),
-        OPT_BOOLEAN('q', "show-qr", &Config.bShowQR, "Show qr code for account.", \
-                    NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('q', "show-qr", &Config.bShowQR, 
+            "Show qr code for account.", NULL, 0, OPT_NONEG),
         OPT_STRING('A', "account", &Config.AccountName, 
             "Specifies account name. (default=NONAME)"),
         OPT_STRING('I', "issuer", &Config.Issuer, 
@@ -149,19 +155,14 @@ int main(int Argc, const char **Argv)
         NULL);
 
     Argc = argparse_parse(&ArgsContext, Argc, Argv);
-    if (-1 == Config.Interval)
-        Config.Interval = 30;
-    if (-1 == Config.Timestamp)
-        Config.Timestamp = GetUnixTimeNow();    
-    if (-1 == Config.Digits)
-        Config.Digits = 6;
-    if (NULL == Config.AccountName)
-        Config.AccountName = strdup("NONAME");
-    if (NULL == Config.Issuer)
-        Config.Issuer = strdup("UNKNOWN");    
-    Config.Mode = MAX(int, -1, MIN(int, 1, Config.Mode));
-    Config.QRQuality = MAX(int, MIN(int, 3, Config.QRQuality), 0);
-    Config.QRVersion = MAX(int, MIN(int, 40, Config.QRVersion), 0);
+    DEFAULT_OR_CLAMP(Config.Interval, -1, 30, int, 0, 120);
+    DEFAULT_OR_RETAIN(Config.Timestamp, -1, GetUnixTimeNow());
+    DEFAULT_OR_CLAMP(Config.Digits, -1, 6, int, 3, 10);
+    DEFAULT_OR_RETAIN(Config.AccountName, NULL, strdup("NONAME"));
+    DEFAULT_OR_RETAIN(Config.Issuer, NULL, strdup("UNKNOWN"));
+    DEFAULT_OR_CLAMP(Config.Mode, -1, -1, int, 0, 1);
+    Config.QRQuality = CLAMP(int, Config.QRQuality, 0, 3);
+    Config.QRVersion = CLAMP(int, Config.QRVersion, 40, 0);
 
     if (Config.bShowHelp)
     {
@@ -197,7 +198,8 @@ int main(int Argc, const char **Argv)
         char* TempKey;
         if (NULL != Config.KeyGenerationSeed)
         {
-            TempKey = GenerateKeyFromSeed(Config.KeyGenerationSeed);
+            TempKey = GenerateKeyFromSeed((uint8_t*)Config.KeyGenerationSeed, 
+                strlen(Config.KeyGenerationSeed));
         }
         else
         {
@@ -261,7 +263,8 @@ int main(int Argc, const char **Argv)
         return 1;
     }
     
-    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, Config.AccountName, Config.Issuer, Config.Digits, Config.Interval);
+    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, Config.AccountName,
+        Config.Issuer, Config.Digits, Config.Interval);
     
     if (Config.bShowURI)
     {        
@@ -294,11 +297,29 @@ int main(int Argc, const char **Argv)
 
     if (-1 < Config.Mode)
     {
+        otp_error_t OTPError;
+
         int OTP;
         if (0 == Config.Mode)
-            OTP = CalculateTOTP(NormalizedKey, Config.Timestamp, Config.Interval, Config.Digits, NULL);
+            OTP = CalculateTOTP(NormalizedKey, Config.Timestamp, 
+                Config.Interval, Config.Digits, &OTPError);
         else if (1 == Config.Mode)
-            OTP = CalculateHOTP(NormalizedKey, Config.Counter, Config.Digits, NULL);        
+            OTP = CalculateHOTP(NormalizedKey, Config.Counter, Config.Digits,
+                &OTPError);
+        else
+        {
+            fprintf(stderr, "Invalid OTP mode!");
+            return 1;            
+        }
+
+        if (OTP_SUCCESS != OTPError)
+        {
+            fprintf(stderr, 
+                "Encountered error when calculating OTP! (ErrorCode: %d)", 
+                OTPError);
+            return 1;            
+        }
+
         {
             char* Code = MakeStringFromOTP(OTP, Config.Digits);
             if (Config.Verbose)
