@@ -14,6 +14,10 @@ set(VERSION_FORMAT "v%d.%d.%d")
 
 project (JustOnceCMD VERSION ${BUILD_VERSION})
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE PATH "" FORCE)
+endif()
+
 string(
     COMPARE EQUAL
     "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
