@@ -1,9 +1,9 @@
-[submodule "third-party/argparse"]
-	path = third-party/argparse
-	url = https://github.com/cofyc/argparse
-[submodule "third-party/JustOnce"]
-	path = third-party/JustOnce
-	url = https://github.com/think-biq/JustOnce
-[submodule "third-party/libqrencode"]
-	path = third-party/libqrencode
+[submodule "lib/libqrencode"]
+	path = lib/libqrencode
 	url = https://github.com/think-biq/libqrencode
+[submodule "lib/argparse"]
+	path = lib/argparse
+	url = https://github.com/cofyc/argparse
+[submodule "lib/JustOnce"]
+	path = lib/JustOnce
+	url = https://github.com/think-biq/JustOnce
