@@ -24,9 +24,11 @@ string(
     IS_STANDALON_PROJECT
 )
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
 add_subdirectory(third-party/JustOnce)
 add_subdirectory(third-party/argparse)
-add_subdirectory(third-party/qrencode)
+add_subdirectory(third-party/libqrencode)
 
 file (GLOB JustOnceCMD_SRC
 	"${PROJECT_SOURCE_DIR}/src/*.c")
@@ -37,14 +39,14 @@ target_include_directories(JustOnceCMD
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/JustOnce/src>"
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/argparse/>"
-  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/qrencode/>"
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/libqrencode/>"
   PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 target_link_libraries(JustOnceCMD JustOnce argparse qrencode)
 
 install(
     DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/include"
     FILES_MATCHING PATTERN "*.h"
 )
 
