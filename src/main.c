@@ -45,6 +45,12 @@ SOFTWARE.
 #define DEFAULT_OR_RETAIN(Variable, Invalid, Default) \
     Variable = Invalid == Variable ? Default : Variable
 
+static int Global_bIsVerbose = 0;
+/*#define PRINTF_VERBOSE(FMT) \
+    { if (Global_bIsVerbose) { fprintf(stderr, FMT); } }*/
+#define PRINTF_VERBOSE(...) \
+    { if (Global_bIsVerbose) { fprintf(stderr, __VA_ARGS__); } }
+
 typedef struct argparse argparse_t;
 typedef struct argparse_option argparse_option_t;
 
@@ -52,6 +58,7 @@ typedef struct {
     int Interval;
     int Timestamp;
     int Mode;
+    int bShowOTP;
     int Digits;
     int Counter;
     int Verbose;
@@ -80,7 +87,8 @@ int main(int Argc, const char **Argv)
     config_t Config;
     Config.Interval = -1;
     Config.Timestamp = -1;
-    Config.Mode = -1;
+    Config.Mode = 0;
+    Config.bShowOTP = 0;
     Config.Digits = -1;
     Config.Counter = 0;
     Config.Verbose = 0;
@@ -111,9 +119,12 @@ int main(int Argc, const char **Argv)
                     NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('g', "generate-key", &Config.bGenerateKey, \
                     "Generates a base32 encoded key of length 32.", \
-                    NULL, 0, OPT_NONEG),      
+                    NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('P', "print-key", &Config.bPrintKey, \
                     "Prints key.", \
+                    NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('O', "generate-otp", &Config.bShowOTP, \
+                    "Generates new OTP (select mode via -o).", \
                     NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('V', "verbose", &Config.Verbose,
             "Output in verbose mode."),
@@ -122,7 +133,7 @@ int main(int Argc, const char **Argv)
         OPT_GROUP("OTP"),
         OPT_STRING('s', "key-seed", &Config.KeyGenerationSeed,
             "Seed phrase for key generation."),
-        OPT_INTEGER('o', "show-otp", &Config.Mode,
+        OPT_INTEGER('o', "otp", &Config.Mode,
             "Selectes OTP mode. 0 is TOTP. 1 is HOTP."),
         OPT_INTEGER('d', "digits", &Config.Digits,
             "Number of digits of the OTP. (default=6)"),
@@ -155,14 +166,15 @@ int main(int Argc, const char **Argv)
         NULL);
 
     Argc = argparse_parse(&ArgsContext, Argc, Argv);
+    Global_bIsVerbose = Config.Verbose;
     DEFAULT_OR_CLAMP(Config.Interval, -1, 30, int, 0, 120);
     DEFAULT_OR_RETAIN(Config.Timestamp, -1, GetUnixTimeNow());
     DEFAULT_OR_CLAMP(Config.Digits, -1, 6, int, 3, 10);
     DEFAULT_OR_RETAIN(Config.AccountName, NULL, strdup("NONAME"));
     DEFAULT_OR_RETAIN(Config.Issuer, NULL, strdup("UNKNOWN"));
-    DEFAULT_OR_CLAMP(Config.Mode, -1, -1, int, 0, 1);
+    Config.Mode = CLAMP(int, Config.Mode, 0, 1);
     Config.QRQuality = CLAMP(int, Config.QRQuality, 0, 3);
-    Config.QRVersion = CLAMP(int, Config.QRVersion, 40, 0);
+    Config.QRVersion = CLAMP(int, Config.QRVersion, 0, 40);
 
     if (Config.bShowHelp)
     {
@@ -192,9 +204,13 @@ int main(int Argc, const char **Argv)
         return 0;
     }
 
+    PRINTF_VERBOSE("Key setup ...\n");
+
     char Key[33];
     if (Config.bGenerateKey)
     {
+        PRINTF_VERBOSE("Generating key ...\n");
+
         char* TempKey;
         if (NULL != Config.KeyGenerationSeed)
         {
@@ -217,8 +233,11 @@ int main(int Argc, const char **Argv)
     }
     else
     {
+        PRINTF_VERBOSE("Reading key ...\n");
         if (NULL != Config.KeyFilePath)
         {
+            PRINTF_VERBOSE("From file %s ...\n", Config.KeyFilePath);
+
             FILE* KeyFile;
             char* line = NULL;
             size_t len = 0;
@@ -248,12 +267,16 @@ int main(int Argc, const char **Argv)
         }
         else
         {
+            PRINTF_VERBOSE("From stdin ...\n");
+
             int Read = read(STDIN_FILENO, Key, 32);
             if (10 == Key[Read-1])
                 Read = 0 < Read ? Read-1 : 0;
             Key[Read] = '\0';
         }
     }
+
+    PRINTF_VERBOSE("Normalizing key '%s' ...\n", Key);
 
     char* NormalizedKey = NormalizeKey(Key);
     int bIsValidKey = IsValidKey(NormalizedKey);
@@ -263,7 +286,9 @@ int main(int Argc, const char **Argv)
         return 1;
     }
     
-    char* URI = GenerateAuthURI(OTP_OP_TOTP, NormalizedKey, Config.AccountName,
+    PRINTF_VERBOSE("Creating URI ...\n");
+    otp_operation_t OTPMode = Config.Mode == 0 ? OTP_OP_TOTP : OTP_OP_HOTP;
+    char* URI = GenerateAuthURI(OTPMode, NormalizedKey, Config.AccountName,
         Config.Issuer, Config.Digits, Config.Interval);
     
     if (Config.bShowURI)
@@ -294,8 +319,8 @@ int main(int Argc, const char **Argv)
     }
 
     free(URI);
-
-    if (-1 < Config.Mode)
+    
+    if (Config.bShowOTP)
     {
         otp_error_t OTPError;
 

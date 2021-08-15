@@ -3,7 +3,7 @@
 FILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_DIR := $(shell dirname $(FILE_PATH))
 PROJECT_NAME := $(notdir $(patsubst %/,%,$(dir $(FILE_PATH))))
-BUILD_DIR := "$(PROJECT_DIR)/staging"
+BUILD_DIR := $(PROJECT_DIR)/staging
 WITH_TEST := 0
 TEST_FLAGS :=  -D JustOnce_WithTest=0 \
 	-D ShaOne_WithTest=0 \
@@ -30,7 +30,7 @@ build:
 	@make -C "$(BUILD_DIR)"
 
 run:
-	cat Key.hash | "$(BUILD_DIR)"/./JustOnceCMD -V -u -i 30 -P
+	"$(BUILD_DIR)"/./JustOnceCMD -A "neo@matr.ix" -I "architect" -i 23 -d 7 -Uq < Key.hash
 
 docs: clean-docs
 	doxygen docs/doxygen.cfg > docs/doxygen.log 2> docs/doxygen.err.log

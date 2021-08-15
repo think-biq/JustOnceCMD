@@ -45,4 +45,4 @@ SOFTWARE.
   (type)GENERIC_MIN(ENSURE_##type(x), ENSURE_##type(y))
 
 #define CLAMP(type, v, a, b) \
-   MAX(type, MIN(type, v, a), b)
+   MAX(type, MIN(type, v, b), a)
