@@ -108,54 +108,50 @@ int main(int Argc, const char **Argv)
 
     argparse_option_t Options[] = {
         OPT_GROUP("General"),
-        OPT_BOOLEAN('h', "help", &Config.bShowHelp, \
-                    "Show this help message and exit.", \
-                    argparse_help_cb, 0, OPT_NONEG),
-        OPT_BOOLEAN('v', "version", &Config.bShowVersion, \
-                    "Show version number.", \
-                    NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('u', "show-times", &Config.bShowOnlyTime, \
-                    "Only show time information.", \
-                    NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('g', "generate-key", &Config.bGenerateKey, \
-                    "Generates a base32 encoded key of length 32.", \
-                    NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('P', "print-key", &Config.bPrintKey, \
-                    "Prints key.", \
-                    NULL, 0, OPT_NONEG),
-        OPT_BOOLEAN('O', "generate-otp", &Config.bShowOTP, \
-                    "Generates new OTP (select mode via -o).", \
-                    NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('h', "help", &Config.bShowHelp,
+            "Show this help message and exit.", argparse_help_cb, 0, OPT_NONEG),
+        OPT_BOOLEAN('v', "version", &Config.bShowVersion,
+            "Show version number.", NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('u', "show-times", &Config.bShowOnlyTime,
+            "Only show time information.", NULL, 0, OPT_NONEG),
+        OPT_BOOLEAN('P', "print-key", &Config.bPrintKey,
+            "Prints key.", NULL, 0, OPT_NONEG),
         OPT_BOOLEAN('V', "verbose", &Config.Verbose,
             "Output in verbose mode."),
         OPT_STRING('k', "key-file", &Config.KeyFilePath, 
             "Specify key file path. If not specified, reads from stdin."),
+
         OPT_GROUP("OTP"),
+        OPT_BOOLEAN('g', "generate-key", &Config.bGenerateKey,
+            "Generates a base32 encoded key of length 32.", NULL, 0, OPT_NONEG),
         OPT_STRING('s', "key-seed", &Config.KeyGenerationSeed,
             "Seed phrase for key generation."),
+        OPT_BOOLEAN('O', "generate-otp", &Config.bShowOTP,
+            "Generates new OTP (select mode via -o).", NULL, 0, OPT_NONEG),
         OPT_INTEGER('o', "otp", &Config.Mode,
             "Selectes OTP mode. 0 is TOTP. 1 is HOTP."),
         OPT_INTEGER('d', "digits", &Config.Digits,
             "Number of digits of the OTP. (default=6)"),
-        OPT_INTEGER('c', "counter", &Config.Counter,
+        OPT_INTEGER('n', "counter", &Config.Counter,
             "Counter value to be used with HOTP. (default=0)"),
-        OPT_INTEGER('i', "interval", &Config.Interval, 
+        OPT_INTEGER('l', "interval", &Config.Interval, 
             "Interval to use for TOTP creation. (default=30)"),
         OPT_INTEGER('t', "timestamp", &Config.Timestamp, 
             "Unix timestamp to use for TOTP creation. (default=NOW)"),
+
         OPT_GROUP("Account info / QR code generation"),
-        OPT_BOOLEAN('q', "show-qr", &Config.bShowQR, 
+        OPT_BOOLEAN('Q', "show-qr", &Config.bShowQR, 
             "Show qr code for account.", NULL, 0, OPT_NONEG),
-        OPT_STRING('A', "account", &Config.AccountName, 
+        OPT_BOOLEAN('U', "show-uri", &Config.bShowURI,
+            "Show otpauth URI.", NULL, 0, OPT_NONEG),
+        OPT_STRING('a', "account", &Config.AccountName, 
             "Specifies account name. (default=NONAME)"),
-        OPT_STRING('I', "issuer", &Config.Issuer, 
+        OPT_STRING('i', "issuer", &Config.Issuer, 
             "Specifies issuer name. (default=UNKNOWN)"),
-        OPT_INTEGER('Q', "qr-quality", &Config.QRQuality, 
+        OPT_INTEGER('q', "qr-quality", &Config.QRQuality, 
             "Qualit of qr code. (default=0)"),
-        OPT_INTEGER('C', "qr-version", &Config.QRVersion, 
-            "Qualit of qr code. (default=0)"),
-        OPT_BOOLEAN('U', "show-url", &Config.bShowURI, "Show otpauth url.", \
-                    NULL, 0, OPT_NONEG),
+        OPT_INTEGER('w', "qr-version", &Config.QRVersion, 
+            "Quality of qr code. (default=0)"),
         OPT_END(),
     };
 
@@ -359,15 +355,12 @@ int main(int Argc, const char **Argv)
             }
             free(Code);
         }
+
+        printf("\n");
     }
 
     if (Config.bPrintKey)
     {
-        if (-1 < Config.Mode)
-        {
-            printf("\n");
-        }
-
         printf("%s", NormalizedKey);
     }
 

@@ -30,7 +30,7 @@ build:
 	@make -C "$(BUILD_DIR)"
 
 run:
-	"$(BUILD_DIR)"/./JustOnceCMD -A "neo@matr.ix" -I "architect" -i 23 -d 7 -Uq < Key.hash
+	"$(BUILD_DIR)"/./JustOnceCMD -U -a "neo@matr.ix" -i "architect" -l 23 -d 7 < Key.hash
 
 docs: clean-docs
 	doxygen docs/doxygen.cfg > docs/doxygen.log 2> docs/doxygen.err.log
