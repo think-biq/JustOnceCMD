@@ -46,8 +46,6 @@ SOFTWARE.
     Variable = Invalid == Variable ? Default : Variable
 
 static int Global_bIsVerbose = 0;
-/*#define PRINTF_VERBOSE(FMT) \
-    { if (Global_bIsVerbose) { fprintf(stderr, FMT); } }*/
 #define PRINTF_VERBOSE(...) \
     { if (Global_bIsVerbose) { fprintf(stderr, __VA_ARGS__); } }
 
@@ -161,9 +159,12 @@ int main(int Argc, const char **Argv)
         "\nGenerates one-time passwords.", 
         NULL);
 
+    PRINTF_VERBOSE("Reading arguments ...\n");
     Argc = argparse_parse(&ArgsContext, Argc, Argv);
+
+    PRINTF_VERBOSE("Setting default values for arguments ...\n");
     Global_bIsVerbose = Config.Verbose;
-    DEFAULT_OR_CLAMP(Config.Interval, -1, 30, int, 0, 120);
+    DEFAULT_OR_CLAMP(Config.Interval, -1, 30, int, 1, 120);
     DEFAULT_OR_RETAIN(Config.Timestamp, -1, GetUnixTimeNow());
     DEFAULT_OR_CLAMP(Config.Digits, -1, 6, int, 3, 10);
     DEFAULT_OR_RETAIN(Config.AccountName, NULL, strdup("NONAME"));
@@ -171,6 +172,49 @@ int main(int Argc, const char **Argv)
     Config.Mode = CLAMP(int, Config.Mode, 0, 1);
     Config.QRQuality = CLAMP(int, Config.QRQuality, 0, 3);
     Config.QRVersion = CLAMP(int, Config.QRVersion, 0, 40);
+
+    PRINTF_VERBOSE(
+        "Config:\n"
+        "\tInterval:\t\t%d\n"
+        "\tTimestamp:\t\t%d\n"
+        "\tMode:\t\t\t%d\n"
+        "\tbShowOTP:\t\t%d\n"
+        "\tDigits:\t\t\t%d\n"
+        "\tCounter:\t\t%d\n"
+        "\tVerbose:\t\t%d\n"
+        "\tKeyFilePath:\t\t%s\n"
+        "\tAccountName:\t\t%s\n"
+        "\tIssuer:\t\t\t%s\n"
+        "\tQRQuality:\t\t%d\n"
+        "\tQRVersion:\t\t%d\n"
+        "\tbShowHelp:\t\t%d\n"
+        "\tbShowOnlyTime:\t\t%d\n"
+        "\tbGenerateKey:\t\t%d\n"
+        "\tKeyGenerationSeed:\t%s\n"
+        "\tbShowVersion:\t\t%d\n"
+        "\tbShowQR:\t\t%d\n"
+        "\tbShowURI:\t\t%d\n"
+        "\tbPrintKey:\t\t%d\n"
+        , Config.Interval
+        , Config.Timestamp
+        , Config.Mode
+        , Config.bShowOTP
+        , Config.Digits
+        , Config.Counter
+        , Config.Verbose
+        , Config.KeyFilePath
+        , Config.AccountName
+        , Config.Issuer
+        , Config.QRQuality
+        , Config.QRVersion
+        , Config.bShowHelp
+        , Config.bShowOnlyTime
+        , Config.bGenerateKey
+        , Config.KeyGenerationSeed
+        , Config.bShowVersion
+        , Config.bShowQR
+        , Config.bShowURI
+        , Config.bPrintKey);
 
     if (Config.bShowHelp)
     {
@@ -234,19 +278,18 @@ int main(int Argc, const char **Argv)
         {
             PRINTF_VERBOSE("From file %s ...\n", Config.KeyFilePath);
 
-            FILE* KeyFile;
-            char* line = NULL;
-            size_t len = 0;
-            ssize_t read;
-
-            KeyFile = fopen(Config.KeyFilePath, "r");
+            FILE* KeyFile = fopen(Config.KeyFilePath, "r");
             if (NULL == KeyFile)
             {
-                argparse_usage(&ArgsContext);
+                fprintf(stderr, "Could not read keyfile from '%s':\n\t", Config.KeyFilePath);
+                perror("fopen");
                 return 1;
             }
 
-            read = getline(&line, &len, KeyFile);
+            char* line = NULL;
+            size_t len = 0;
+            ssize_t read = getline(&line, &len, KeyFile);
+
             fclose(KeyFile);
 
             if (0 == read)
@@ -272,9 +315,9 @@ int main(int Argc, const char **Argv)
         }
     }
 
-    PRINTF_VERBOSE("Normalizing key '%s' ...\n", Key);
-
+    PRINTF_VERBOSE("Normalizing key '%s' => ", Key);
     char* NormalizedKey = NormalizeKey(Key);
+    PRINTF_VERBOSE("to '%s' \n", NormalizedKey);
     int bIsValidKey = IsValidKey(NormalizedKey);
     if (0 == bIsValidKey)
     {

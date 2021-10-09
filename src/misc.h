@@ -33,9 +33,11 @@ SOFTWARE.
 #define GENERIC_MIN(x, y) ((x) < (y) ? (x) : (y))
 
 /** Type check for int. */
-#define ENSURE_int(i)   _Generic((i), int:   (i))
+#define ENSURE_int(v)    _Generic((v), int:    (v))
 /** Type check for float. */
-#define ENSURE_float(f) _Generic((f), float: (f))
+#define ENSURE_float(v)  _Generic((v), float:  (v))
+/** Type check for double. */
+#define ENSURE_double(v) _Generic((v), double: (v))
 
 /** Finds typed max value. */
 #define MAX(type, x, y) \
