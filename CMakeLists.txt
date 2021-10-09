@@ -24,11 +24,14 @@ string(
     IS_STANDALON_PROJECT
 )
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(FLAT_INSTALL "Set library and runtime directory to output" OFF)
 
+if(FLAT_INSTALL)
 # Make sure libraries will be places beside executable.
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
 
 add_subdirectory(lib/JustOnce)
 add_subdirectory(lib/argparse)
