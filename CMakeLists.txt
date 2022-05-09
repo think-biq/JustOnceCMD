@@ -17,6 +17,7 @@ project (JustOnceCMD VERSION ${BUILD_VERSION})
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE PATH "" FORCE)
 endif()
+message(WARNING "Using build profile: ${CMAKE_BUILD_TYPE}")
 
 string(
     COMPARE EQUAL

@@ -1,12 +1,21 @@
 # -*- coding: utf8 -*-
+# Copyright (c) 2022 - ∞ blurryroots innovation qanat OÜ
 
 FILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_DIR := $(shell dirname $(FILE_PATH))
 PROJECT_NAME := $(notdir $(patsubst %/,%,$(dir $(FILE_PATH))))
 BUILD_DIR ?= $(PROJECT_DIR)/staging
-BIN_DIR ?= "$(BUILD_DIR)/Debug"
 BUILD_MODE ?= Release # Either Debug or Release
 BUILD_SHARED_LIBS ?= OFF
+WITH_WINDOWS := 0
+TEST_EXE_PATH := $(BUILD_DIR)/JustOnceCMD
+BIN_DIR := "$(BUILD_DIR)"
+ifeq ($(shell echo "check_quotes"),"check_quotes")
+	WITH_WINDOWS = 1
+	TEST_EXE_PATH = $(BUILD_DIR)/$(BUILD_MODE)/JustOnceCMD.exe
+	BIN_DIR = $(BUILD_DIR)/$(BUILD_MODE)
+endif
+WITH_TEST ?= 1
 GRIND ?= valgrind
 GRIND_OPTS ?= --show-leak-kinds=all --leak-check=full --track-origins=yes -v
 
@@ -21,6 +30,8 @@ debug:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
 	@echo "GRIND: $(GRIND)"
 	@echo "SDKROOT: $(SDKROOT)"
+	@echo "OS: $(OS)"
+	@echo "WITH_WINDOWS: $(WITH_WINDOWS)"
 
 clean:
 	@rm -rf "$(BUILD_DIR)"
