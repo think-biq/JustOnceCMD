@@ -50,8 +50,16 @@ target_include_directories(JustOnceCMD
   PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 target_link_libraries(JustOnceCMD JustOnce argparse qrencode)
+set_property(TARGET JustOnceCMD PROPERTY C_STANDARD 11)
 
-install(
+if(WIN32)
+   #VS_DEBUGGER_COMMAND_ARGUMENTS()
+   set_target_properties(JustOnceCMD PROPERTIES 
+       VS_DEBUGGER_COMMAND ""
+       VS_DEBUGGER_COMMAND_ARGUMENTS "-U -a \"neo@matr.ix\" -i \"architect\" -l 23 -d 7 -k \"$(ProjectDir)..\\Key.hash\"")
+endif()
+
+#[[install(
     DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src"
     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/include"
     FILES_MATCHING PATTERN "*.h"
@@ -65,4 +73,4 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
+)]]
