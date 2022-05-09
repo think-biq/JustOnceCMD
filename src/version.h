@@ -32,4 +32,4 @@ SOFTWARE.
 * 
 * @returns Current version name. 
 */
-const char* GetVersion();
+const char* GetVersionString();

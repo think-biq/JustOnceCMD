@@ -4,7 +4,7 @@
 
 #include <config.h>
 
-const char* GetVersion()
+const char* GetVersionString()
 {
     static char Version[MAX_VERSION_SIZE] = { '\0' };
     if (0 == strlen(Version))

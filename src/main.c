@@ -34,7 +34,43 @@ SOFTWARE.
 #include <argparse.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN 
+#include <windows.h>
+#include <limits.h>
+#include <stddef.h>
+#include <inttypes.h>
+#include <stdint.h>
+
+// REplace STDIN_FILENO
+#define STDIN_FILENO _fileno(stdin)
+// Replace ssize_t
+#if SIZE_MAX == UINT_MAX
+typedef int ssize_t;        /* common 32 bit case */
+#define SSIZE_MIN  INT_MIN
+#define SSIZE_MAX  INT_MAX
+#elif SIZE_MAX == ULONG_MAX
+typedef long ssize_t;       /* linux 64 bits */
+#define SSIZE_MIN  LONG_MIN
+#define SSIZE_MAX  LONG_MAX
+#elif SIZE_MAX == ULLONG_MAX
+typedef long long ssize_t;  /* windows 64 bits */
+#define SSIZE_MIN  LLONG_MIN
+#define SSIZE_MAX  LLONG_MAX
+#elif SIZE_MAX == USHRT_MAX
+typedef short ssize_t;      /* is this even possible? */
+#define SSIZE_MIN  SHRT_MIN
+#define SSIZE_MAX  SHRT_MAX
+#elif SIZE_MAX == UINTMAX_MAX
+typedef uintmax_t ssize_t;  /* last resort, chux suggestion */
+#define SSIZE_MIN  INTMAX_MIN
+#define SSIZE_MAX  INTMAX_MAX
+#else
+#error platform has exotic SIZE_MAX
+#endif
+#else
 #include <unistd.h>
+#endif
 #include <version.h>
 #include "qr.h"
 #include "misc.h"
@@ -224,7 +260,7 @@ int main(int Argc, const char **Argv)
 
     if (Config.bShowVersion)
     {
-        printf("%s", GetVersion());
+        printf("%s", GetVersionString());
         return 0;
     }
 
@@ -278,37 +314,60 @@ int main(int Argc, const char **Argv)
         {
             PRINTF_VERBOSE("From file %s ...\n", Config.KeyFilePath);
 
-            FILE* KeyFile = fopen(Config.KeyFilePath, "r");
-            if (NULL == KeyFile)
+            char* KeyLine = NULL;
+            FILE* KeyFile;
+            if (KeyFile = fopen(Config.KeyFilePath, "r"))
             {
-                fprintf(stderr, "Could not read keyfile from '%s':\n\t", Config.KeyFilePath);
-                perror("fopen");
-                return 1;
+                if (NULL == KeyFile)
+                {
+                    fprintf(stderr, "Could not read keyfile from '%s':\n\t", Config.KeyFilePath);
+                    perror("fopen");
+                    return 1;
+                }
+
+                size_t BytesRead = 0;
+                ssize_t LineStatus = getline(&KeyLine, &BytesRead, KeyFile);
+
+                fclose(KeyFile);
+
+                if (0 == LineStatus)
+                {
+                    fprintf(stderr, "Keyfile empty!");
+                    return 1;
+                }
+
+                if (32 == BytesRead)
+                {
+                    fprintf(stderr, "Need 32 character key!");
+                    return 1;
+                }
             }
 
-            char* line = NULL;
-            size_t len = 0;
-            ssize_t read = getline(&line, &len, KeyFile);
-
-            fclose(KeyFile);
-
-            if (0 == read)
-            {
-                fprintf(stderr, "Keyfile empty!");
-                return 1;
-            }
-
-            strncpy(Key, line, 32);
+            strncpy(Key, KeyLine, 32);
             Key[32] = '\0';
 
-            if (line)
-                free(line);
+            if (KeyLine)
+                free(KeyLine);
         }
         else
         {
             PRINTF_VERBOSE("From stdin ...\n");
 
-            int Read = read(STDIN_FILENO, Key, 32);
+            int Read;
+            #if defined(_WIN32)
+            Read = fgets(Key, 32, stdin);
+            if (0 > Read)
+            {
+                fprintf(stderr, "OUTSH!");
+                return -1;
+            }
+            else
+            {
+                fprintf(stdout, "YEA! Read %i\n", Read);
+            }
+            #else
+            Read = read(stdin, Key, 32);
+            #endif
             if (10 == Key[Read-1])
                 Read = 0 < Read ? Read-1 : 0;
             Key[Read] = '\0';
