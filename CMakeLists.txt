@@ -33,9 +33,12 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
 
-add_subdirectory(lib/JustOnce)
 add_subdirectory(lib/argparse)
 add_subdirectory(lib/libqrencode)
+if(WIN32)
+    set(BCRYPT ON) # User bcyrpt librayr on windows.
+endif()
+add_subdirectory(lib/JustOnce)
 
 file (GLOB JustOnceCMD_SRC
 	"${PROJECT_SOURCE_DIR}/src/*.c")
